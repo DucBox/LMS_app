@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ assignment.title }}{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ assignment.title }}</h1>
+    <p>{{ assignment.description }}</p>
+    <p><strong>{% trans "Due Date:" %}</strong> {{ assignment.due_date|date:"F j, Y, g:i a" }}</p>
+
+    <h3>{% trans "Submissions" %}</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{% trans "Student" %}</th>
+                <th>{% trans "Submitted At" %}</th>
+                <th>{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for submission in assignment.submissions.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ submission.student.username }}</td>
+                <td>{{ submission.submitted_at|date:"F j, Y, g:i a" }}</td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-primary">{% trans "View Submission" %}</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    {% trans "No submissions yet." %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

@@ -24,9 +24,17 @@ class EssayForm(forms.Form):
 
 
 class QuizAddForm(forms.ModelForm):
+    max_attempts = forms.IntegerField(
+        required=True,
+        min_value=1,
+        initial=1,
+        label=_("Maximum Attempts"),
+        help_text=_("Set the maximum number of attempts allowed for this quiz."),
+    )
+
     class Meta:
         model = Quiz
-        exclude = []
+        exclude = []  # Không loại trừ trường nào
 
     questions = forms.ModelMultipleChoiceField(
         queryset=Question.objects.all().select_subclasses(),
@@ -44,10 +52,12 @@ class QuizAddForm(forms.ModelForm):
 
     def save(self, commit=True):
         quiz = super(QuizAddForm, self).save(commit=False)
+        quiz.max_attempts = self.cleaned_data["max_attempts"]  # Lưu giá trị max_attempts
         quiz.save()
         quiz.question_set.set(self.cleaned_data["questions"])
         self.save_m2m()
         return quiz
+
 
 
 class MCQuestionForm(forms.ModelForm):

@@ -269,3 +269,6 @@ SEMESTER_CHOICES = (
     (SECOND, _("Second")),
     (THIRD, _("Third")),
 )
+
+# Config for submissions
+SUBMISSIONS_ROOT = os.path.join(BASE_DIR, "submissions")

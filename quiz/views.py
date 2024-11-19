@@ -35,7 +35,6 @@ from .models import (
 # Quiz Views
 # ########################################################
 
-
 @method_decorator([login_required, lecturer_required], name="dispatch")
 class QuizCreateView(CreateView):
     model = Quiz
@@ -57,6 +56,7 @@ class QuizCreateView(CreateView):
         form.instance.course = get_object_or_404(Course, slug=self.kwargs["slug"])
         with transaction.atomic():
             self.object = form.save()
+            # Chuyển hướng sang trang tạo câu hỏi
             return redirect(
                 "mc_create", slug=self.kwargs["slug"], quiz_id=self.object.id
             )
@@ -95,9 +95,22 @@ def quiz_delete(request, slug, pk):
 def quiz_list(request, slug):
     course = get_object_or_404(Course, slug=slug)
     quizzes = Quiz.objects.filter(course=course).order_by("-timestamp")
+
+    # Tính số lần làm bài và số lần còn lại
+    quizzes_with_attempts = []
+    for quiz in quizzes:
+        attempts = quiz.sitting_set.filter(user=request.user).count()
+        remaining_attempts = max(0, quiz.max_attempts - attempts) if not quiz.single_attempt else 0
+        quizzes_with_attempts.append({
+            "quiz": quiz,
+            "attempts": attempts,
+            "remaining_attempts": remaining_attempts,
+        })
+
     return render(
-        request, "quiz/quiz_list.html", {"quizzes": quizzes, "course": course}
+        request, "quiz/quiz_list.html", {"quizzes_with_attempts": quizzes_with_attempts, "course": course}
     )
+
 
 
 # ########################################################
@@ -237,6 +250,17 @@ class QuizTake(FormView):
             messages.warning(request, "This quiz has no questions available.")
             return redirect("quiz_index", slug=self.course.slug)
 
+        # Kiểm tra số lần làm bài
+        attempts = Sitting.objects.filter(
+            user=request.user, quiz=self.quiz, course=self.course
+        ).count()
+        if attempts >= self.quiz.max_attempts:
+            messages.info(
+                request,
+                f"You have reached the maximum number of {self.quiz.max_attempts} attempts for this quiz.",
+            )
+            return redirect("quiz_index", slug=self.course.slug)
+
         self.sitting = Sitting.objects.user_sitting(
             request.user, self.quiz, self.course
         )
@@ -247,7 +271,10 @@ class QuizTake(FormView):
             )
             return redirect("quiz_index", slug=self.course.slug)
 
-        # Set self.question and self.progress here
+        # Check if this is the last attempt
+        self.total_attempts = attempts + 1
+        self.show_answers = self.total_attempts >= self.quiz.max_attempts
+
         self.question = self.sitting.get_first_question()
         self.progress = self.sitting.progress()
 
@@ -304,6 +331,7 @@ class QuizTake(FormView):
         context["question"] = self.question
         context["quiz"] = self.quiz
         context["course"] = self.course
+        context["show_answers"] = self.show_answers  # Truyền giá trị để kiểm soát hiển thị
         if hasattr(self, "previous"):
             context["previous"] = self.previous
         if hasattr(self, "progress"):
@@ -312,6 +340,21 @@ class QuizTake(FormView):
 
     def final_result_user(self):
         self.sitting.mark_quiz_complete()
+        questions = self.sitting.get_questions(with_answers=True)
+        
+        # Xử lý từng câu hỏi để kiểm tra đáp án đúng/sai
+        processed_questions = []
+        for question in questions:
+            user_answer = question.user_answer
+            is_correct = question.check_if_correct(user_answer) if user_answer else False
+            processed_questions.append({
+                'question': question,
+                'user_answer': user_answer,
+                'is_correct': is_correct,
+                'correct_answer': question.get_choices_list() if hasattr(question, 'get_choices_list') else None,
+                'explanation': question.explanation,
+            })
+        
         results = {
             "course": self.course,
             "quiz": self.quiz,
@@ -319,18 +362,8 @@ class QuizTake(FormView):
             "max_score": self.sitting.get_max_score,
             "percent": self.sitting.get_percent_correct,
             "sitting": self.sitting,
-            "previous": getattr(self, "previous", {}),
+            "questions": processed_questions,
+            "show_answers": self.show_answers,  # Kiểm soát hiển thị đáp án
         }
-
-        if self.quiz.answers_at_end:
-            results["questions"] = self.sitting.get_questions(with_answers=True)
-            results["incorrect_questions"] = self.sitting.get_incorrect_questions
-
-        if (
-            not self.quiz.exam_paper
-            or self.request.user.is_superuser
-            or self.request.user.is_lecturer
-        ):
-            self.sitting.delete()
 
         return render(self.request, self.result_template_name, results)

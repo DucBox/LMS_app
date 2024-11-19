@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {% trans "Add Assignment" %}{% endblock title %}
+{% block content %}
+
+<div class="container mt-5">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'programs' %}">{% trans "Programs" %}</a></li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'course_detail' course.slug %}">{{ course }}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{% trans "Add Assignment" %}</li>
+        </ol>
+    </nav>
+
+    <h2 class="mb-4">{% trans "Add Assignment" %}</h2>
+
+    {% include "snippets/messages.html" %}
+
+    <form method="post" enctype="multipart/form-data" class="needs-validation">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_title" class="form-label">{% trans "Title" %}</label>
+            <input
+                type="text"
+                class="form-control"
+                id="id_title"
+                name="title"
+                placeholder="{% trans 'Enter assignment title' %}"
+                required
+            />
+        </div>
+
+        <div class="mb-3">
+            <label for="id_description" class="form-label">{% trans "Description" %}</label>
+            <textarea
+                class="form-control"
+                id="id_description"
+                name="description"
+                rows="5"
+                placeholder="{% trans 'Enter assignment description' %}"
+            ></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="id_due_date" class="form-label">{% trans "Due Date" %}</label>
+            <input
+                type="datetime-local"
+                class="form-control"
+                id="id_due_date"
+                name="due_date"
+                required
+            />
+        </div>
+
+        <button type="submit" class="btn btn-primary">{% trans "Add Assignment" %}</button>
+        <a href="{% url 'assignment_list' course.slug %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+    </form>
+</div>
+
+{% endblock content %}

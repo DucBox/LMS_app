@@ -254,3 +254,40 @@ class CourseOffer(models.Model):
 
     def __str__(self):
         return str(self.dep_head)
+
+class Assignment(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    due_date = models.DateTimeField()
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="assignments"
+    )
+
+    def __str__(self):
+        return f"{self.title} (Due: {self.due_date})"
+
+
+class Submission(models.Model):
+    assignment = models.ForeignKey(
+        Assignment, on_delete=models.CASCADE, related_name="submissions"
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="submissions"
+    )
+    uploaded_file = models.FileField(upload_to="submissions/")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    feedback = models.TextField(blank=True, null=True)
+    is_final = models.BooleanField(default=False)  # Đánh dấu đây là submission cuối cùng
+
+    def save(self, *args, **kwargs):
+        if self.is_final:
+            # Đặt is_final=False cho tất cả submission cũ của cùng sinh viên và assignment
+            Submission.objects.filter(
+                assignment=self.assignment,
+                student=self.student,
+            ).update(is_final=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Submission by {self.student.username} for {self.assignment.title}"
+

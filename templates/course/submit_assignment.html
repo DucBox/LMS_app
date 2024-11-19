@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Submit Assignment{% endblock title %}
+{% block content %}
+<div class="container">
+    <h1>Submit Assignment: {{ assignment.title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="uploaded_file">Upload File</label>
+            <input type="file" name="uploaded_file" id="uploaded_file" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+    </form>
+</div>
+{% endblock content %}

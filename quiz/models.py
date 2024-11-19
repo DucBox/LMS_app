@@ -55,6 +55,11 @@ class Quiz(models.Model):
         blank=True,
         help_text=_("A detailed description of the quiz"),
     )
+    max_attempts = models.PositiveIntegerField(
+        default=2,  # Số lần làm bài mặc định là 1
+        verbose_name=_("Maximum Attempts"),
+        help_text=_("Maximum number of attempts allowed for this quiz."),
+    )
     category = models.CharField(max_length=20, choices=CATEGORY_OPTIONS, blank=True)
     random_order = models.BooleanField(
         default=False,
@@ -187,6 +192,10 @@ class Progress(models.Model):
 
 class SittingManager(models.Manager):
     def new_sitting(self, user, quiz, course):
+        attempts = self.filter(user=user, quiz=quiz, course=course).count()
+        if attempts >= quiz.max_attempts:
+            raise ValidationError(_("Maximum attempts reached for this quiz."))
+
         if quiz.random_order:
             question_set = quiz.question_set.all().select_subclasses().order_by("?")
         else:

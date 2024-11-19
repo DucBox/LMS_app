@@ -1,7 +1,6 @@
 from django.urls import path
 from . import views
 
-
 urlpatterns = [
     # Program urls
     path("", views.ProgramFilterView.as_view(), name="programs"),
@@ -9,11 +8,13 @@ urlpatterns = [
     path("add/", views.program_add, name="add_program"),
     path("<int:pk>/edit/", views.program_edit, name="edit_program"),
     path("<int:pk>/delete/", views.program_delete, name="program_delete"),
+    
     # Course urls
     path("course/<slug>/detail/", views.course_single, name="course_detail"),
     path("<int:pk>/course/add/", views.course_add, name="course_add"),
     path("course/<slug>/edit/", views.course_edit, name="edit_course"),
     path("course/delete/<slug>/", views.course_delete, name="delete_course"),
+    
     # CourseAllocation urls
     path(
         "course/assign/",
@@ -33,6 +34,7 @@ urlpatterns = [
     path(
         "course/<int:pk>/deallocate/", views.deallocate_course, name="course_deallocate"
     ),
+    
     # File uploads urls
     path(
         "course/<slug>/documentations/upload/",
@@ -49,6 +51,7 @@ urlpatterns = [
         views.handle_file_delete,
         name="upload_file_delete",
     ),
+    
     # Video uploads urls
     path(
         "course/<slug>/video_tutorials/upload/",
@@ -70,8 +73,45 @@ urlpatterns = [
         views.handle_video_delete,
         name="upload_video_delete",
     ),
-    # course registration
+    
+    # Course registration
     path("course/registration/", views.course_registration, name="course_registration"),
     path("course/drop/", views.course_drop, name="course_drop"),
     path("my_courses/", views.user_course_list, name="user_course_list"),
+    #Assignment
+    path(
+        "course/<slug:course_slug>/assignments/",
+        views.assignment_list,
+        name="assignment_list",
+    ),
+    path(
+        "assignment/<int:assignment_id>/submit/",
+        views.submit_assignment,
+        name="submit_assignment",
+    ),
+    path(
+        "assignment/<int:assignment_id>/submissions/",
+        views.submission_list,
+        name="submission_list",
+    ),
+    path(
+        "course/<slug:course_slug>/assignments/create/",
+        views.create_assignment,
+        name="create_assignment",
+    ),
+    path(
+        "course/<int:pk>/assignments/add/",
+        views.assignment_add,
+        name="assignment_add",
+    ),
+    path(
+        "course/<int:course_id>/assignments/<int:assignment_id>/edit/",
+        views.assignment_edit,
+        name="assignment_edit",
+    ),
+    path(
+        "course/<int:course_id>/assignments/<int:assignment_id>/delete/",
+        views.assignment_delete,
+        name="assignment_delete",
+    ),
 ]

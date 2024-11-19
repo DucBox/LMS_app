@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Submissions" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">{% trans "Submissions for" %} {{ assignment.title }}</h2>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>{% trans "Student Name" %}</th>
+                <th>{% trans "Uploaded File" %}</th>
+                <th>{% trans "Submission Time" %}</th>
+                <th>{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for submission in submissions %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ submission.student.username }}</td>
+                <td>
+                    <a href="{{ submission.uploaded_file.url }}">
+                        {{ submission.uploaded_file.name|slice:":-10" }}
+                    </a>
+                </td>
+                <td>{{ submission.submitted_at|date:"F j, Y, g:i a" }}</td>
+                <td>
+                    <a href="{{ submission.uploaded_file.url }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-download"></i> {% trans "Download" %}
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-danger">
+                    {% trans "No submissions yet." %} DEBUG: Total submissions={{ submissions.count }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'course_detail' assignment.course.slug %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to Course" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
