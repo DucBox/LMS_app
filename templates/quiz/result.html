@@ -73,23 +73,26 @@
         {% for item in questions %}
         <div class="mb-3">
             <p><strong>{{ forloop.counter }}. {{ item.question.content }}</strong></p>
+            
             <p>
                 {% trans "Your Answer" %}: 
                 <span class="bg-secondary px-3 py-1 text-light">{{ item.user_answer }}</span>
             </p>
+            
             {% if item.is_correct %}
             <p class="text-success"><strong>{% trans "Correct!" %}</strong></p>
             {% else %}
             <p class="text-danger"><strong>{% trans "Incorrect." %}</strong></p>
-            <p>{% trans "Correct Answer" %}: {{ item.correct_answer }}</p>
+            <p>{% trans "Correct Answer" %}: {{ item.correct_answer|join:", " }}</p>
             {% endif %}
-
+            
             {% if item.explanation %}
             <p><strong>{% trans "Explanation" %}:</strong></p>
             <p class="alert alert-info">{{ item.explanation|safe }}</p>
             {% else %}
             <p class="alert alert-warning">{% trans "No explanation provided for this question." %}</p>
             {% endif %}
+            <!-- End Debug Block -->
         </div>
         <hr>
         {% endfor %}

@@ -426,9 +426,12 @@ class MCQuestion(Question):
     def check_if_correct(self, guess):
         try:
             answer = Choice.objects.get(id=int(guess))
+            print(f"Checking answer: {answer.choice_text}, Correct: {answer.correct}")
             return answer.correct
         except (Choice.DoesNotExist, ValueError):
+            print("Answer not found or invalid")
             return False
+
 
     def order_choices(self, queryset):
         if self.choice_order == "content":
@@ -443,6 +446,13 @@ class MCQuestion(Question):
 
     def get_choices_list(self):
         return [(choice.id, choice.choice_text) for choice in self.get_choices()]
+    
+    def get_choices_correct(self):
+        """
+        Trả về danh sách các đáp án đúng, chỉ bao gồm giá trị của các lựa chọn đúng.
+        """
+        return [choice.choice_text for choice in Choice.objects.filter(question=self, correct=True)]
+
 
     def answer_choice_to_string(self, guess):
         try:
